@@ -1,9 +1,33 @@
 import cdk = require('@aws-cdk/core');
+import ec2 = require('@aws-cdk/aws-ec2');
+import ecs = require('@aws-cdk/aws-ecs');
 
 export class CdkQuizStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
-    super(scope, id, props);
+    constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
+        super(scope, id, props);
 
-    // The code that defines your stack goes here
-  }
+        const vpc = new ec2.Vpc(this, 'MyVpc', { maxAzs: 2 });
+
+        const cluster = new ecs.Cluster(this, 'Ec2Cluster', { vpc });
+        cluster.addCapacity('DefaultAutoScalingGroup', {
+            instanceType: ec2.InstanceType.of(ec2.InstanceClass.T2, ec2.InstanceSize.MICRO)
+        });
+
+        // create a task definition with CloudWatch Logs
+        const logging = new ecs.AwsLogDriver({ streamPrefix: 'myapp' });
+
+        const taskDef = new ecs.Ec2TaskDefinition(this, 'MyTaskDefinition');
+
+        taskDef.addContainer('AppContainer', {
+            image: ecs.ContainerImage.fromRegistry('amazon/amazon-ecs-sample'),
+            memoryLimitMiB: 512,
+            logging
+        });
+
+        // Instantiate ECS Service with just cluster and image
+        new ecs.Ec2Service(this, 'Ec2Service', {
+            cluster,
+            taskDefinition: taskDef
+        });
+    }
 }
