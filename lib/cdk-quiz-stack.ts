@@ -8,7 +8,30 @@ export class CdkQuizStack extends cdk.Stack {
 
         const vpc = new ec2.Vpc(this, 'MyVpc', { maxAzs: 2 });
 
+        // VPC configuration could go here for specifying s public/private/isolated subnet
+        // const vpc = new ec2.Vpc(this, 'MyVpc', {
+        //     cidr: '10.0.0.0/21',
+        //     subnetConfiguration: [
+        //       {
+        //         cidrMask: 24,
+        //         name: 'Ingress',
+        //         subnetType: ec2.SubnetType.PUBLIC,
+        //       },
+        //       {
+        //         cidrMask: 24,
+        //         name: 'Application',
+        //         subnetType: ec2.SubnetType.PRIVATE,
+        //       },
+        //       {
+        //         cidrMask: 28,
+        //         name: 'Database',
+        //         subnetType: ec2.SubnetType.ISOLATED,
+        //       }
+        //     ],
+        //   });
+
         const cluster = new ecs.Cluster(this, 'Ec2Cluster', { vpc });
+        
         cluster.addCapacity('DefaultAutoScalingGroup', {
             instanceType: ec2.InstanceType.of(ec2.InstanceClass.T2, ec2.InstanceSize.MICRO)
         });
